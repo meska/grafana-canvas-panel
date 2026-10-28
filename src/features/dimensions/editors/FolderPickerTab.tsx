@@ -1,14 +1,16 @@
 // SOURCE: https://github.com/grafana/grafana/blob/main/public/app/features/dimensions/editors/FolderPickerTab.tsx
 import * as React from 'react';
 import { css } from '@emotion/css';
-import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
+import { type Dispatch, type SetStateAction, useEffect, useMemo, useState } from 'react';
 
 import { type GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
+import { config } from '@grafana/runtime';
 import { Field, FilterInput, Combobox, useStyles2, type ComboboxOption } from '@grafana/ui';
 
 import { MediaType, ResourceFolderName } from '../types';
 import { getPublicOrAbsoluteUrl } from '../resource';
+import { type CustomIndex, fetchCustomIndex, getCustomFolders } from '../customFolders';
 import { ICON_MANIFEST } from '../../../img/icons/manifest';
 import { BG_MANIFEST } from '../../../img/bg/manifest';
 
@@ -48,23 +50,40 @@ export const FolderPickerTab = (props: Props) => {
   const { value, mediaType, folderName, newValue, setNewValue } = props;
   const styles = useStyles2(getStyles);
 
-  const folders = getFolders(mediaType).map((v) => ({
-    label: v,
-    value: v,
-  }));
+  // Custom folders (common + current org) come from a runtime index, not from the build.
+  const [customIndex, setCustomIndex] = useState<CustomIndex>();
+  useEffect(() => {
+    fetchCustomIndex().then(setCustomIndex);
+  }, []);
+  const customFolders = useMemo(
+    () => getCustomFolders(customIndex, config.bootData?.user?.orgId, mediaType),
+    [customIndex, mediaType]
+  );
+
+  const folders = [
+    ...getFolders(mediaType).map((v) => ({ label: v, value: v })),
+    ...customFolders.map(({ label, value }) => ({ label, value })),
+  ];
 
   const [searchQuery, setSearchQuery] = useState<string>();
 
-  const [currentFolder, setCurrentFolder] = useState<ComboboxOption<string>>(
-    getFolderIfExists(folders, value?.length ? value : folderName)
-  );
+  // The user's pick wins; otherwise open the custom folder holding the current value, else the default.
+  const [picked, setPicked] = useState<ComboboxOption<string>>();
+  const holder = customFolders.find((f) => value?.startsWith(`${f.value}/`));
+  const currentFolder =
+    picked ??
+    (holder
+      ? { label: holder.label, value: holder.value }
+      : getFolderIfExists(folders, value?.length ? value : folderName));
 
   const directoryIndex = useMemo<ResourceItem[]>(() => {
     const folder = currentFolder?.value;
     if (!folder) {
       return [];
     }
-    return Object.keys(MANIFEST[folder] ?? {}).map((filename) => {
+    const custom = customFolders.find((f) => f.value === folder);
+    const filenames = custom ? custom.files : Object.keys(MANIFEST[folder] ?? {});
+    return filenames.map((filename) => {
       const idx = filename.lastIndexOf('.');
       return {
         value: `${folder}/${filename}`,
@@ -73,7 +92,7 @@ export const FolderPickerTab = (props: Props) => {
         imgUrl: getPublicOrAbsoluteUrl(`${folder}/${filename}`),
       };
     });
-  }, [currentFolder]);
+  }, [currentFolder.value, customFolders]);
 
   const filteredIndex = useMemo<ResourceItem[]>(() => {
     if (!searchQuery) {
@@ -88,7 +107,7 @@ export const FolderPickerTab = (props: Props) => {
       <Field>
         <Combobox
           options={folders}
-          onChange={setCurrentFolder}
+          onChange={setPicked}
           value={currentFolder}
           aria-label={t('dimensions.folder-picker-tab.label-folder', 'Folder')}
         />

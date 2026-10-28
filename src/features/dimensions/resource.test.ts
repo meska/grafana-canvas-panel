@@ -22,6 +22,13 @@ describe('getPublicOrAbsoluteUrl', () => {
     expect(getPublicOrAbsoluteUrl('img/icon.svg')).toEqual(`${FAKE_BASE_URL}/img/icon.svg`);
   });
 
+  it('resolves a /public/ site-root path against the Grafana sub url, not the plugin', () => {
+    config.appSubUrl = '/grafana';
+    expect(getPublicOrAbsoluteUrl('/public/img/custom/org-1/x.png')).toEqual('/grafana/public/img/custom/org-1/x.png');
+    config.appSubUrl = '';
+    expect(getPublicOrAbsoluteUrl('/public/img/custom/common/x.png')).toEqual('/public/img/custom/common/x.png');
+  });
+
   it('returns an absolute URL unchanged', () => {
     expect(getPublicOrAbsoluteUrl('https://example.com/icon.png')).toEqual('https://example.com/icon.png');
   });

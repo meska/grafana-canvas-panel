@@ -21,6 +21,11 @@ export function getPublicOrAbsoluteUrl(path: unknown): string {
     return path;
   }
 
+  // Site-root paths (custom folders, e.g. /public/img/custom/org-1/x.png) are served by Grafana, not by the plugin.
+  if (path.startsWith('/public/')) {
+    return `${config.appSubUrl ?? ''}${path}`;
+  }
+
   const pluginBaseUrl = config.panels?.[pluginJson.id]?.baseUrl ?? '';
   return `${pluginBaseUrl}/${path}`;
 }
