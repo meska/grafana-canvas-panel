@@ -56,7 +56,7 @@ export const FolderPickerTab = (props: Props) => {
     fetchCustomIndex().then(setCustomIndex);
   }, []);
   const customFolders = useMemo(
-    () => getCustomFolders(customIndex, config.bootData?.user?.orgId, mediaType),
+    () => getCustomFolders(customIndex, config.bootData?.user?.orgId, mediaType, config.bootData?.user?.orgName),
     [customIndex, mediaType]
   );
 

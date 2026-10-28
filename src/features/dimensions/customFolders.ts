@@ -29,17 +29,23 @@ export async function fetchCustomIndex(): Promise<CustomIndex | undefined> {
 }
 
 /**
- * Folders the current org may see: `common` plus `org-<orgId>`. This only filters the picker:
- * files under /public are readable by anyone who knows the URL.
+ * Folders the current org may see: `common` plus `org-<orgId>` or `org-<orgId>-<slug>` (the slug is cosmetic,
+ * the id is what matches). This only filters the picker: files under /public are readable by anyone who knows the URL.
  */
-export function getCustomFolders(index: CustomIndex | undefined, orgId: number | undefined, mediaType: MediaType) {
-  const keys = ['common', ...(orgId ? [`org-${orgId}`] : [])];
+export function getCustomFolders(
+  index: CustomIndex | undefined,
+  orgId: number | undefined,
+  mediaType: MediaType,
+  orgName?: string
+) {
   const accept = (f: string) => (mediaType === MediaType.Icon ? /\.svg$/i.test(f) : IMAGE_EXT.test(f));
-  return keys
-    .filter((k) => k in (index?.folders ?? {}))
+  const isOrg = (k: string) => orgId !== undefined && (k === `org-${orgId}` || k.startsWith(`org-${orgId}-`));
+  return Object.keys(index?.folders ?? {})
+    .filter((k) => k === 'common' || isOrg(k))
+    .sort((a, b) => (a === 'common' ? -1 : b === 'common' ? 1 : a.localeCompare(b)))
     .map<CustomFolder>((k) => ({
       value: `${CUSTOM_IMAGES_ROOT}/${k}`,
-      label: k === 'common' ? 'Shared (common)' : `This organization (${k})`,
+      label: k === 'common' ? 'Shared (common)' : `This organization (${orgName || k})`,
       files: index!.folders[k].filter(accept).sort(),
     }));
 }

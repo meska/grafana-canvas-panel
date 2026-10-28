@@ -1,18 +1,43 @@
 #!/usr/bin/env python3
-"""Write index.json for the Canvas custom image folders.
+"""Keep the Canvas custom image folders in sync with Grafana and write index.json.
 
-Usage: custom-images-index.py /srv/grafana-images
-Layout: <root>/common/*.png, <root>/org-<orgId>/*.png  (one sub-folder per Grafana org).
-Run from cron every minute: the picker reads <root>/index.json at runtime.
+Usage: custom-images-index.py <images dir> [--grafana-db /srv/grafana/grafana.db]
+Layout: <dir>/common/, <dir>/org-<orgId>-<slug>/ (the slug is cosmetic, the id matters).
+With --grafana-db (read-only) a folder is created for every org, and a bare org-<id> folder is renamed
+to org-<id>-<slug>. Folders and files are never deleted. Run from cron every minute.
 """
 import json
 import os
 import re
+import sqlite3
 import sys
 import tempfile
+import unicodedata
 
 IMAGE = re.compile(r"\.(png|jpe?g|gif|webp|svg)$", re.I)
-FOLDER = re.compile(r"^(common|org-\d+)$")
+FOLDER = re.compile(r"^(common|org-\d+(-[a-z0-9-]*)?)$")
+
+
+def slugify(name):
+    s = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")[:40]
+
+
+def sync_orgs(root, db):
+    con = sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=5)
+    try:
+        orgs = con.execute("select id, name from org").fetchall()
+    finally:
+        con.close()
+    existing = os.listdir(root)
+    for org_id, name in orgs:
+        target = f"org-{org_id}-{slugify(name)}".rstrip("-")
+        has_dir = any(d == f"org-{org_id}" or d.startswith(f"org-{org_id}-") for d in existing)
+        if f"org-{org_id}" in existing and target not in existing:
+            os.rename(os.path.join(root, f"org-{org_id}"), os.path.join(root, target))
+        elif not has_dir:
+            os.makedirs(os.path.join(root, target))
+            os.chmod(os.path.join(root, target), 0o755)  # makedirs mode is masked by umask
 
 
 def build_index(root):
@@ -38,4 +63,8 @@ def write_index(root):
 
 
 if __name__ == "__main__":
-    write_index(sys.argv[1])
+    args = sys.argv[1:]
+    db = args[args.index("--grafana-db") + 1] if "--grafana-db" in args else None
+    if db:
+        sync_orgs(args[0], db)
+    write_index(args[0])

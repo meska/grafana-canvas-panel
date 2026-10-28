@@ -8,7 +8,7 @@ Mount a host directory into Grafana at `/usr/share/grafana/public/img/custom` (r
 
 ```
 <host dir>/common/        shared by every organization
-<host dir>/org-<orgId>/   visible only when working in that organization
+<host dir>/org-<orgId>-<slug>/   visible only when working in that organization (slug = org name, cosmetic; the id matches)
 <host dir>/index.json     generated, read by the picker
 ```
 
@@ -16,10 +16,10 @@ Upload with SFTP/scp into `common/` or `org-<orgId>/`, mode `644` (Grafana runs 
 
 ## Index
 
-`scripts/custom-images-index.py <host dir>` writes `index.json` (atomic, skips if unchanged). Run it from cron every minute:
+`scripts/custom-images-index.py <host dir> --grafana-db <grafana.db>` creates a folder for every organization (read-only access to the Grafana database, no credentials), renames bare `org-<id>` folders to `org-<id>-<slug>`, never deletes anything, and writes `index.json` (atomic, skips if unchanged). New organizations get their folder within a minute. Run it from cron every minute:
 
 ```
-* * * * * /usr/bin/python3 /usr/local/bin/custom-images-index.py /srv/grafana-images
+* * * * * /usr/bin/python3 /usr/local/bin/custom-images-index.py /srv/grafana-images --grafana-db /srv/grafana/grafana.db
 ```
 
 ## Notes
