@@ -14,16 +14,16 @@ services:
     ports:
       - 3000:3000/tcp
     volumes:
-      - ../dist:/var/lib/grafana/plugins/canvas
+      - ../dist:/var/lib/grafana/plugins/meskatech-canvas-panel
       - ../provisioning:/etc/grafana/provisioning
       - ..:/root/grafana-canvas-panel
 
     environment:
       NODE_ENV: development
-      GF_LOG_FILTERS: plugin.canvas:debug
+      GF_LOG_FILTERS: plugin.meskatech-canvas-panel:debug
       GF_LOG_LEVEL: debug
       GF_DATAPROXY_LOGGING: 1
-      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: canvas
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: meskatech-canvas-panel
 
     healthcheck:
       test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1']

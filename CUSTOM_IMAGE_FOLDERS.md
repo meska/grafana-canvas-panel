@@ -27,4 +27,4 @@ Upload with SFTP/scp into `common/` or `org-<orgId>/`, mode `644` (Grafana runs 
 - The picker shows `common` plus the current org's folder only. This is a UI filter: files under `/public` are readable by anyone who knows the URL.
 - Stored value is a site-root path (`/public/img/custom/org-1/x.png`); `getPublicOrAbsoluteUrl` resolves `/public/...` against Grafana's sub url.
 - Icons: only `.svg`. Backgrounds/images: png, jpg, gif, webp, svg.
-- Loading this fork in Grafana: unsigned plugin, so `GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=canvas` and `GF_PLUGIN_CANVAS_AS_EXTERNAL=true`; put the built `dist/` in `<grafana data>/plugins/canvas`.
+- Loading this fork in Grafana: unsigned plugin, so `GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=meskatech-canvas-panel`; put the built `dist/` in `<grafana data>/plugins/meskatech-canvas-panel`. The plugin id is `meskatech-canvas-panel`, so it runs next to the stock Canvas (panel type `meskatech-canvas-panel`) without overriding it.

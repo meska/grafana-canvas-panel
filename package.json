@@ -1,5 +1,5 @@
 {
-  "name": "canvas",
+  "name": "meskatech-canvas-panel",
   "version": "13.4.0",
   "scripts": {
     "build": "webpack -c ./webpack.config.ts --env production",

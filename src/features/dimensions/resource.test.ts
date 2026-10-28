@@ -4,8 +4,8 @@ import { ResourceDimensionMode } from '@grafana/schema';
 
 import { getPublicOrAbsoluteUrl, getResourceDimension } from './resource';
 
-const PLUGIN_ID = 'canvas';
-const FAKE_BASE_URL = 'https://grafana.fake/public/plugins/canvas';
+const PLUGIN_ID = 'meskatech-canvas-panel';
+const FAKE_BASE_URL = 'https://grafana.fake/public/plugins/meskatech-canvas-panel';
 
 beforeEach(() => {
   config.panels = {

@@ -1,18 +1,18 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "panel",
-  "name": "Canvas",
-  "id": "canvas",
+  "name": "Canvas (cartelle immagini)",
+  "id": "meskatech-canvas-panel",
   "suggestions": true,
   "info": {
     "keywords": [
       "canvas",
       "drawing"
     ],
-    "description": "Explicit element placement",
+    "description": "Fork of the Grafana Canvas panel: explicit element placement, plus shared and per-organization image folders in the picker",
     "author": {
-      "name": "Grafana",
-      "url": "https://grafana.com"
+      "name": "meskatech (fork of Grafana Labs canvas)",
+      "url": "https://github.com/meska/grafana-canvas-panel"
     },
     "logos": {
       "small": "img/logo.svg",
